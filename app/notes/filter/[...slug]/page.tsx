@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   HydrationBoundary,
   QueryClient,
@@ -15,6 +16,42 @@ interface NotesPageProps {
     search?: string;
     page?: string;
   }>;
+}
+
+const baseUrl = "https://notehub.com/";
+const ogImage = "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg";
+
+export async function generateMetadata({
+  params,
+}: NotesPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const tag = slug[0] ?? "all";
+
+  const filterName = tag === "all" ? "All notes" : `${tag} notes`;
+
+  const title = `${filterName} | NoteHub`;
+  const description =
+    tag === "all"
+      ? "View and manage all your notes in NoteHub."
+      : `View and manage your ${tag} notes in NoteHub.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: baseUrl,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: "NoteHub application for managing personal notes",
+        },
+      ],
+    },
+  };
 }
 
 export default async function NotesPage({

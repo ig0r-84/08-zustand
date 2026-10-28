@@ -46,18 +46,17 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
     },
   });
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
-
+  const handleSubmit = async (formData: FormData) => {
     const values: NoteFormValues = {
       title: String(formData.get("title") ?? "").trim(),
       content: String(formData.get("content") ?? ""),
       tag: String(formData.get("tag") ?? "Todo") as NoteTag,
     };
 
-    const newErrors: { title?: string; content?: string } = {};
+    const newErrors: {
+      title?: string;
+      content?: string;
+    } = {};
 
     if (values.title.length < 3) {
       newErrors.title = "Заголовок має містити щонайменше 3 символи";
@@ -75,11 +74,15 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
       return;
     }
 
-    createMutation.mutate(values);
+    try {
+      await createMutation.mutateAsync(values);
+    } catch {
+      // Помилка відображається через createMutation.isError.
+    }
   };
 
   return (
-    <form className={css.form} onSubmit={handleSubmit}>
+    <form className={css.form} action={handleSubmit}>
       <div className={css.formGroup}>
         <label htmlFor="title">Title</label>
 
@@ -90,6 +93,9 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
           className={css.input}
           defaultValue={draft.title}
           onChange={(event) => setDraft({ title: event.target.value })}
+          required
+          minLength={3}
+          maxLength={50}
         />
 
         {errors.title && <span className={css.error}>{errors.title}</span>}
@@ -105,6 +111,7 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
           className={css.textarea}
           defaultValue={draft.content}
           onChange={(event) => setDraft({ content: event.target.value })}
+          maxLength={500}
         />
 
         {errors.content && <span className={css.error}>{errors.content}</span>}
@@ -117,8 +124,12 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
           id="tag"
           name="tag"
           className={css.select}
-          defaultValue={draft.tag}
-          onChange={(event) => setDraft({ tag: event.target.value as NoteTag })}
+          value={draft.tag}
+          onChange={(event) =>
+            setDraft({
+              tag: event.target.value as NoteTag,
+            })
+          }
         >
           <option value="Todo">Todo</option>
           <option value="Work">Work</option>
