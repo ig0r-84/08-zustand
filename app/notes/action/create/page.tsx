@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import CreateNote from "./CreateNote";
+import NoteForm from "@/components/NoteForm/NoteForm";
+import css from "./CreateNote.module.css";
 
 export const metadata: Metadata = {
   title: "Create note | NoteHub",
@@ -21,5 +22,12 @@ export const metadata: Metadata = {
 };
 
 export default function CreateNotePage() {
-  return <CreateNote />;
+  return (
+    <main className={css.main}>
+      <div className={css.container}>
+        <h1 className={css.title}>Create note</h1>
+        <NoteForm onCancel={() => {}} />
+      </div>
+    </main>
+  );
 }
