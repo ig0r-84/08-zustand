@@ -10,7 +10,7 @@ import type { NoteTag } from "@/types/note";
 import css from "./NoteForm.module.css";
 
 interface NoteFormProps {
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 interface NoteFormValues {
@@ -46,7 +46,19 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
     },
   });
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.back();
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+
     const values: NoteFormValues = {
       title: String(formData.get("title") ?? "").trim(),
       content: String(formData.get("content") ?? ""),
@@ -77,12 +89,12 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
     try {
       await createMutation.mutateAsync(values);
     } catch {
-      // Помилка відображається через createMutation.isError.
+      // Помилка відображається нижче у формі.
     }
   };
 
   return (
-    <form className={css.form} action={handleSubmit}>
+    <form className={css.form} onSubmit={handleSubmit}>
       <div className={css.formGroup}>
         <label htmlFor="title">Title</label>
 
@@ -92,10 +104,9 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
           name="title"
           className={css.input}
           defaultValue={draft.title}
-          onChange={(event) => setDraft({ title: event.target.value })}
-          required
-          minLength={3}
-          maxLength={50}
+          onChange={(event) => {
+            setDraft({ title: event.target.value });
+          }}
         />
 
         {errors.title && <span className={css.error}>{errors.title}</span>}
@@ -110,8 +121,9 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
           rows={8}
           className={css.textarea}
           defaultValue={draft.content}
-          onChange={(event) => setDraft({ content: event.target.value })}
-          maxLength={500}
+          onChange={(event) => {
+            setDraft({ content: event.target.value });
+          }}
         />
 
         {errors.content && <span className={css.error}>{errors.content}</span>}
@@ -125,11 +137,11 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
           name="tag"
           className={css.select}
           value={draft.tag}
-          onChange={(event) =>
+          onChange={(event) => {
             setDraft({
               tag: event.target.value as NoteTag,
-            })
-          }
+            });
+          }}
         >
           <option value="Todo">Todo</option>
           <option value="Work">Work</option>
@@ -143,7 +155,7 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
         <button
           type="button"
           className={css.cancelButton}
-          onClick={onCancel}
+          onClick={handleCancel}
           disabled={createMutation.isPending}
         >
           Cancel
